@@ -62,15 +62,15 @@ $('b').onclick=e=>{e.stopPropagation();start()};
 function levelUp(){lvl++;cols=Math.min(71,cols+4);rows=Math.min(71,rows+4);levelT=0;fright=0;gen();inv=2;st='ready';ft=1.8;msg('ALLES OP! +500 · +1 MONSTER · DOOLHOF GROTER','#fff',1900);beep(523,.12);setTimeout(()=>beep(659,.12),120);setTimeout(()=>beep(784,.2),240)}
 let sw=null;
 c.addEventListener('pointerdown',e=>{sw={x:e.clientX,y:e.clientY}});
-c.addEventListener('pointermove',e=>{if(!sw||!pac)return;const dx=e.clientX-sw.x,dy=e.clientY-sw.y;if(Math.hypot(dx,dy)>14){pac.want=Math.abs(dx)>Math.abs(dy)?[dx>0?1:-1,0]:[0,dy>0?1:-1];sw={x:e.clientX,y:e.clientY}}});
+c.addEventListener('pointermove',e=>{if(!sw||!pac)return;const dx=e.clientX-sw.x,dy=e.clientY-sw.y;if(Math.hypot(dx,dy)>10){pac.want=Math.abs(dx)>Math.abs(dy)?[dx>0?1:-1,0]:[0,dy>0?1:-1];sw={x:e.clientX,y:e.clientY}}});
 addEventListener('pointerup',()=>sw=null);addEventListener('pointercancel',()=>sw=null);
 addEventListener('keydown',e=>{const m={ArrowRight:[1,0],ArrowLeft:[-1,0],ArrowDown:[0,1],ArrowUp:[0,-1]}[e.key];if(m&&pac)pac.want=m});
 function move(e,dt,sp,pk){let d=sp*dt;while(d>0){if(!e.dx&&!e.dy){pk(e);if(!e.dx&&!e.dy)return}
  const r=1-e.p;if(d<r){e.p+=d;d=0}else{d-=r;e.tx+=e.dx;e.ty+=e.dy;e.p=0;pk(e);if(!e.dx&&!e.dy)return}}}
 function ppick(e){const w=pac.want;if((w[0]||w[1])&&!M[e.ty+w[1]][e.tx+w[0]]){e.dx=w[0];e.dy=w[1]}else if(M[e.ty+e.dy][e.tx+e.dx]||(!e.dx&&!e.dy)){e.dx=e.dy=0}if(e.dx||e.dy)pac.ld=[e.dx,e.dy]}
 const pp=()=>({x:pac.tx+pac.dx*pac.p,y:pac.ty+pac.dy*pac.p});
-function gpick(e){const o=DIRS.filter(([a,b])=>!M[e.ty+b][e.tx+a]);let d;
- if(fright>0){const nr=o.filter(([a,b])=>!(a===-e.dx&&b===-e.dy&&(e.dx||e.dy)));d=pick(nr.length?nr:o)}
+function gpick(e){let o=DIRS.filter(([a,b])=>!M[e.ty+b][e.tx+a]);const fw=o.filter(([a,b])=>!(a===-e.dx&&b===-e.dy&&(e.dx||e.dy)));if(fw.length)o=fw;let d;
+ if(fright>0){d=pick(o)}
  else{const q=pp(),k=e.type%4,dist=Math.hypot(e.tx-q.x,e.ty-q.y);let tx=Math.round(q.x),ty=Math.round(q.y);
   if(k===1&&(pac.dx||pac.dy)){let ax=tx,ay=ty;for(let i=0;i<4;i++){const nx=ax+pac.dx,ny=ay+pac.dy;if(M[ny]&&M[ny][nx]===0){ax=nx;ay=ny}else break}tx=ax;ty=ay}
   if(k===2&&dist<6){tx=e.sx;ty=e.sy}
@@ -86,6 +86,7 @@ function update(dt){
  if(st!=='play')return;
   inv=Math.max(0,inv-dt);fright=Math.max(0,fright-dt);if(!fright)streak=0;
  const w=pac.want;if(pac.p>0&&(pac.dx||pac.dy)&&w[0]===-pac.dx&&w[1]===-pac.dy){pac.tx+=pac.dx;pac.ty+=pac.dy;pac.dx=-pac.dx;pac.dy=-pac.dy;pac.p=1-pac.p;pac.ld=[pac.dx,pac.dy]}
+ if(pac.p>0&&pac.p<.4&&(pac.dx||pac.dy)&&(w[0]||w[1])&&w[0]*pac.dx+w[1]*pac.dy===0&&!M[pac.ty+w[1]][pac.tx+w[0]]){pac.dx=w[0];pac.dy=w[1];pac.ld=[w[0],w[1]]}
  move(pac,dt,6,ppick);
  const ex=pac.p<.5?pac.tx:pac.tx+pac.dx,ey=pac.p<.5?pac.ty:pac.ty+pac.dy,v=D[ey][ex];
  if(v){D[ey][ex]=0;dotsLeft--;if(v===1){score+=10;snd^=1;beep(snd?240:300,.04)}else{score+=50;fright=Math.max(4,8-lvl*.4);streak=0;beep(120,.3,'triangle',.07)}
